@@ -1,0 +1,17 @@
+[package]
+name = "gymnarium_agents_random"
+version = "0.1.0"
+
+description = "A collection of random agents for the gymnarium crate"
+keywords = ["gym", "reinforcement", "learning", "agent", "random"]
+
+repository = "https://github.com/tiquthon/gymnarium_agents_random"
+authors = ["Thimo Neumann <tiquthon@gmail.com>"]
+
+edition = "2018"
+license = "MIT"
+
+[dependencies]
+gymnarium_base = { path = "../gymnarium_base" }
+rand = "0.7.3"
+rand_chacha = "0.2.2"
