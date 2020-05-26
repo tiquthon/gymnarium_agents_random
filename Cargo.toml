@@ -13,5 +13,6 @@ license = "MIT"
 
 [dependencies]
 gymnarium_base = { path = "../gymnarium_base" }
+num-traits = "0.2.11"
 rand = "0.7.3"
 rand_chacha = "0.2.2"
