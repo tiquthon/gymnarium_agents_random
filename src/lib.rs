@@ -42,7 +42,8 @@ impl std::error::Error for RandomAgentError {}
 ///     DimensionBoundaries::from(1..=2),
 ///     DimensionBoundaries::from(2.0..=2.0)
 /// ]));
-/// random_agent.reset(Some(Seed::from(0))).unwrap();
+/// random_agent.reseed(Some(Seed::from(0))).unwrap();
+/// random_agent.reset().unwrap();
 ///
 /// let chosen_action = random_agent.choose_action(&EnvironmentState::default()).unwrap();
 ///
@@ -66,12 +67,16 @@ impl RandomAgent {
 }
 
 impl Agent<RandomAgentError> for RandomAgent {
-    fn reset(&mut self, random_seed: Option<Seed>) -> Result<(), RandomAgentError> {
+    fn reseed(&mut self, random_seed: Option<Seed>) -> Result<(), RandomAgentError> {
         if let Some(seed) = random_seed {
             self.rng = ChaCha20Rng::from_seed(seed.into());
         } else {
             self.rng = ChaCha20Rng::from_entropy();
         }
+        Ok(())
+    }
+
+    fn reset(&mut self) -> Result<(), RandomAgentError> {
         Ok(())
     }
 
