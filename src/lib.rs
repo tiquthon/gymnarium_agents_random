@@ -80,10 +80,7 @@ impl Agent<RandomAgentError> for RandomAgent {
         Ok(())
     }
 
-    fn choose_action(
-        &mut self,
-        _: &EnvironmentState,
-    ) -> Result<AgentAction, RandomAgentError> {
+    fn choose_action(&mut self, _: &EnvironmentState) -> Result<AgentAction, RandomAgentError> {
         Ok(self.action_spaces.sample_with(&mut self.rng))
     }
 
