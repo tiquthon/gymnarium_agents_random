@@ -15,6 +15,8 @@ use rand::SeedableRng;
 
 use rand_chacha::ChaCha20Rng;
 
+use serde::{Deserialize, Serialize};
+
 /// Possible errors occurring within this library.
 ///
 /// Currently there are none and I don't think some will be here in the future.
@@ -53,25 +55,30 @@ impl std::error::Error for RandomAgentError {}
 /// ```
 pub struct RandomAgent {
     action_spaces: ActionSpace,
+    last_seed: Seed,
     rng: ChaCha20Rng,
 }
 
 impl RandomAgent {
     /// Creates a new RandomAgent with the provided ActionSpace.
     pub fn with(action_spaces: ActionSpace) -> Self {
+        let last_seed = Seed::new_random();
         Self {
             action_spaces,
-            rng: ChaCha20Rng::from_entropy(),
+            last_seed: last_seed.clone(),
+            rng: ChaCha20Rng::from_seed(last_seed.into()),
         }
     }
 }
 
-impl Agent<RandomAgentError> for RandomAgent {
+impl Agent<RandomAgentError, RandomAgentStorage> for RandomAgent {
     fn reseed(&mut self, random_seed: Option<Seed>) -> Result<(), RandomAgentError> {
         if let Some(seed) = random_seed {
-            self.rng = ChaCha20Rng::from_seed(seed.into());
+            self.last_seed = seed;
+            self.rng = ChaCha20Rng::from_seed(self.last_seed.clone().into());
         } else {
-            self.rng = ChaCha20Rng::from_entropy();
+            self.last_seed = Seed::new_random();
+            self.rng = ChaCha20Rng::from_seed(self.last_seed.clone().into());
         }
         Ok(())
     }
@@ -94,7 +101,30 @@ impl Agent<RandomAgentError> for RandomAgent {
         Ok(())
     }
 
+    fn load(&mut self, data: RandomAgentStorage) -> Result<(), RandomAgentError>
+    where
+        Self: std::marker::Sized,
+    {
+        self.last_seed = data.last_seed;
+        self.rng = ChaCha20Rng::from_seed(self.last_seed.clone().into());
+        self.rng.set_word_pos(data.rng_word_pos);
+        Ok(())
+    }
+
+    fn store(&self) -> RandomAgentStorage {
+        RandomAgentStorage {
+            last_seed: self.last_seed.clone(),
+            rng_word_pos: self.rng.get_word_pos(),
+        }
+    }
+
     fn close(&mut self) -> Result<(), RandomAgentError> {
         Ok(())
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RandomAgentStorage {
+    last_seed: Seed,
+    rng_word_pos: u128,
 }
