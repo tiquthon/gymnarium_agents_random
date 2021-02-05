@@ -6,6 +6,7 @@
 extern crate gymnarium_base;
 extern crate rand;
 extern crate rand_chacha;
+extern crate serde;
 
 use std::fmt::Debug;
 
