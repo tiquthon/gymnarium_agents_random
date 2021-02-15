@@ -9,8 +9,9 @@ extern crate rand_chacha;
 extern crate serde;
 
 use std::fmt::Debug;
+use std::marker::PhantomData;
 
-use gymnarium_base::{ActionSpace, Agent, AgentAction, EnvironmentState, Seed};
+use gymnarium_base::{ActionSpace, Agent, AgentAction, EnvironmentState, Reward, Seed};
 
 use rand::SeedableRng;
 
@@ -41,7 +42,7 @@ impl std::error::Error for RandomAgentError {}
 /// use gymnarium_base::{ActionSpace, Seed, Agent, EnvironmentState};
 /// use gymnarium_base::space::{DimensionBoundaries, DimensionValue};
 ///
-/// let mut random_agent = RandomAgent::with(ActionSpace::simple(vec![
+/// let mut random_agent: RandomAgent<f64> = RandomAgent::with(ActionSpace::simple(vec![
 ///     DimensionBoundaries::from(1..=2),
 ///     DimensionBoundaries::from(2.0..=2.0)
 /// ]));
@@ -54,13 +55,14 @@ impl std::error::Error for RandomAgentError {}
 /// assert_eq!(DimensionValue::INTEGER(2), chosen_action[&[0]]);
 /// assert_eq!(DimensionValue::FLOAT(2.0), chosen_action[&[1]]);
 /// ```
-pub struct RandomAgent {
+pub struct RandomAgent<R: Reward> {
     action_spaces: ActionSpace,
     last_seed: Seed,
     rng: ChaCha20Rng,
+    _phantom_data: PhantomData<R>,
 }
 
-impl RandomAgent {
+impl<R: Reward> RandomAgent<R> {
     /// Creates a new RandomAgent with the provided ActionSpace.
     pub fn with(action_spaces: ActionSpace) -> Self {
         let last_seed = Seed::new_random();
@@ -68,11 +70,12 @@ impl RandomAgent {
             action_spaces,
             last_seed: last_seed.clone(),
             rng: ChaCha20Rng::from_seed(last_seed.into()),
+            _phantom_data: PhantomData::default(),
         }
     }
 }
 
-impl Agent<RandomAgentError, RandomAgentStorage> for RandomAgent {
+impl<R: Reward> Agent<RandomAgentError, R, RandomAgentStorage> for RandomAgent<R> {
     fn reseed(&mut self, random_seed: Option<Seed>) -> Result<(), RandomAgentError> {
         if let Some(seed) = random_seed {
             self.last_seed = seed;
@@ -95,17 +98,15 @@ impl Agent<RandomAgentError, RandomAgentStorage> for RandomAgent {
     fn process_reward(
         &mut self,
         _: &EnvironmentState,
+        _: &AgentAction,
         _: &EnvironmentState,
-        _: f64,
+        _: R,
         _: bool,
     ) -> Result<(), RandomAgentError> {
         Ok(())
     }
 
-    fn load(&mut self, data: RandomAgentStorage) -> Result<(), RandomAgentError>
-    where
-        Self: std::marker::Sized,
-    {
+    fn load(&mut self, data: RandomAgentStorage) -> Result<(), RandomAgentError> {
         self.last_seed = data.last_seed;
         self.rng = ChaCha20Rng::from_seed(self.last_seed.clone().into());
         self.rng.set_word_pos(data.rng_word_pos);
