@@ -52,8 +52,8 @@ impl std::error::Error for RandomAgentError {}
 /// let chosen_action = random_agent.choose_action(&EnvironmentState::default()).unwrap();
 ///
 /// assert_eq!(&vec![2], chosen_action.dimensions());
-/// assert_eq!(DimensionValue::INTEGER(2), chosen_action[&[0]]);
-/// assert_eq!(DimensionValue::FLOAT(2.0), chosen_action[&[1]]);
+/// assert_eq!(DimensionValue::Integer(2), chosen_action[&[0]]);
+/// assert_eq!(DimensionValue::Float(2.0), chosen_action[&[1]]);
 /// ```
 pub struct RandomAgent<R: Reward> {
     action_spaces: ActionSpace,
